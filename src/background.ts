@@ -1,9 +1,10 @@
 console.log("ServiceNode")
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if(msg.type === "PAGE_RELOAD"){
+    const domainUrl = msg.url ; 
     chrome.storage.local.get("metabaseSession", () => {
       chrome.cookies.get({
-        url: "https://metabase.minusx.ai",
+        url: domainUrl,
         name: "metabase.SESSION",
       }, (cookie) => {
         console.log(cookie);
