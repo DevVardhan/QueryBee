@@ -4,67 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Metabase Extension</title>
-    <link rel="stylesheet" href="popup.css" />
-    <style>
-      body {
-        margin: 0;
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        width: 300px;
-        height: 200px;
-        background-color: #ffffff;
-        color: #333;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        padding: 16px;
-        box-sizing: border-box;
-      }
-
-      h1 {
-        font-size: 1.2rem;
-        margin: 0 0 10px 0;
-        color: #0077cc;
-      }
-
-      .info {
-        background: #f9f9f9;
-        padding: 10px 12px;
-        border-radius: 8px;
-        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
-        margin-bottom: 8px;
-        font-size: 0.95rem;
-      }
-
-      .label {
-        font-weight: 600;
-        color: #555;
-      }
-
-      @keyframes slideIn {
-        from {
-          opacity: 0;
-          transform: translateX(20px);
-        }
-        to {
-          opacity: 1;
-          transform: translateX(0);
-        }
-      }
-
-      .info {
-        animation: slideIn 0.3s ease-out;
-      }
-    </style>
   </head>
   <body>
-    <h1>Metabase Extension</h1>
-    <div class="info" id="domain">
-      Domain: <span class="label">(loading...)</span>
-    </div>
-    <div class="info" id="session">
-      Session ID: <span class="label">(loading...)</span>
-    </div>
-
-    <script src="../dist/popup.js"></script>
+    <div id="root"></div>
   </body>
 </html>
