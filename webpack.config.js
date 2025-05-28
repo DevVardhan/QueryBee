@@ -43,7 +43,7 @@ module.exports = {
     extensions: ['.ts', '.tsx', '.js', '.jsx']
   },
   plugins: [
-    new Dotenv() ,
+    new Dotenv(),
     new HtmlWebpackPlugin({
       template: './src/popup.html',
       filename: 'popup.html',

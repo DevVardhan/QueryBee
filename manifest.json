@@ -6,17 +6,21 @@
       "cookies",        
       "scripting",      
       "activeTab",      
-      "storage"          
+      "storage",
+      "identity"
     ],
     "host_permissions": [
-      "https://metabase.minusx.ai/*"
+      "<all_urls>"
     ],
     "background": {
       "service_worker": "dist/background.js" 
     },
     "content_scripts": [
       {
-        "matches": ["https://metabase.minusx.ai/*"],
+        "matches": [
+          "http://*/*",
+          "https://*/*",
+          "https://metabase.minusx.ai/*"],
         "js": ["dist/content.js"]
       }
     ],
