@@ -1,12 +1,12 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const Dotenv = require('dotenv-webpack');
+const CopyPlugin = require('copy-webpack-plugin');
 
 module.exports = {
   mode: 'development',
-  devtool: 'source-map',
+  devtool: 'cheap-module-source-map',
   entry: {
-    popup: './src/popup.tsx',
+    sidebar: './src/sidebar.tsx',
     background: './src/background.ts',
     content: './src/content.ts'
   },
@@ -19,19 +19,8 @@ module.exports = {
     rules: [
       {
         test: /\.(ts|tsx)$/,
+        use: 'ts-loader',
         exclude: /node_modules/,
-        use: [
-          {
-            loader: 'babel-loader',
-            options: {
-              presets: [
-                '@babel/preset-env',
-                '@babel/preset-react',
-                '@babel/preset-typescript'
-              ]
-            }
-          }
-        ]
       },
       {
         test: /\.css$/,
@@ -43,11 +32,16 @@ module.exports = {
     extensions: ['.ts', '.tsx', '.js', '.jsx']
   },
   plugins: [
-    new Dotenv(),
     new HtmlWebpackPlugin({
-      template: './src/popup.html',
-      filename: 'popup.html',
-      chunks: ['popup']
-    })
+      template: './src/sidebar.html',
+      filename: 'sidebar.html',
+      chunks: ['sidebar']
+    }),
+    new CopyPlugin({
+      patterns: [
+        { from: 'public', to: '.' },
+        { from: 'manifest.json', to: 'manifest.json' }
+      ],
+    }),
   ]
 }; 

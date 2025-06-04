@@ -46,3 +46,20 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     return true; // keep message channel open for async response
   }
 });
+
+chrome.sidePanel
+  .setPanelBehavior({ openPanelOnActionClick: true })
+  .catch((error) => console.error(error));
+
+chrome.tabs.onUpdated.addListener((tabId, info, tab) => {
+  if (!tab.url) return;
+
+  // Enable side panel for all http and https URLs
+  if (tab.url.startsWith('http://') || tab.url.startsWith('https://')) {
+    chrome.sidePanel.setOptions({
+      tabId,
+      path: 'sidebar.html',
+      enabled: true
+    });
+  }
+});
