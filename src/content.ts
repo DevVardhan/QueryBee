@@ -37,3 +37,16 @@ waitForUserConsent().then(() => {
   console.log("✅ Cookie consent accepted");
   chrome.runtime.sendMessage({ type: "COOKIE_ACCEPTED" });
 });
+
+// Listen for messages from the sidebar
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.type === 'ANALYZE_PAGE') {
+    // Here we can add logic to analyze the current page's database tables
+    // For now, we'll just send a mock response
+    sendResponse({
+      success: true,
+      tables: ['Products', 'Orders', 'Customers']
+    });
+  }
+  return true;
+});

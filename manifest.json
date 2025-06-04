@@ -1,45 +1,43 @@
 {
   "manifest_version": 3,
-  "name": "EXten",
-  "version": "1.1.10",
+  "name": "QueryBee",
+  "version": "1.0.0",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAu1Rz9eaRH/pn6RQ8ksas6qvoC8qmkwRBbFzG8S19a9v4WyGE0f08DSwWnP5VUn5bq3N4WYxlk3t9QDtqCg9bBDOE+CbaUNrLeO3vbF2sq+0MM8bvyuZxnbOHQOzYSa0MOhtC7hgtwJ2r5g9bZ8X30UdMejcsxkcenbE7XPBmhWDZUKCkXKCl1q0rYwJAJ6HnbBZv/RpeFIMJkLiM5qN5NELoehkJrXrWogimfLrjaMBb3ldQ+2eWhXYVPQuStT2IVsXVcGOzjkSA7z6YPRmx5rTYlzVqCVUAQgyyxF0I1rw5iOCDn5BjjeDF0fNFYWJz4cfXYRgpPz9f/DOGFvxGHQIDAQAB",
   "permissions": [
     "cookies",
     "scripting",
     "activeTab",
     "storage",
-    "identity"
+    "sidePanel"
   ],
   "host_permissions": [
     "<all_urls>"
   ],
   "background": {
-    "service_worker": "dist/background.js"
+    "service_worker": "background.js"
   },
   "content_scripts": [
     {
       "matches": [
         "http://*/*",
-        "https://*/*",
-        "https://metabase.minusx.ai/*"
+        "https://*/*"
       ],
-      "js": ["dist/content.js"]
+      "js": ["content.js"]
     }
   ],
-  "action": {
-    "default_title": "Metabase Injector",
-    "default_popup": "dist/popup.html",
-    "default_icon": {
-      "16": "public/icon.png",
-      "48": "public/icon.png",
-      "128": "public/icon.png"
-    }
+  "side_panel": {
+    "default_path": "sidebar.html"
+  },
+  "icons": {
+    "16": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
   },
   "web_accessible_resources": [
     {
       "resources": [
-        "dist/popup.html",
-        "public/icon.png"
+        "sidebar.html",
+        "icon.png"
       ],
       "matches": [
         "<all_urls>"
