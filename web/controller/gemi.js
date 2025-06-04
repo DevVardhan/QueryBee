@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const genAI = new GoogleGenerativeAI("AIzaSyD8KmLJCWmlSu6V1d3IBnaHPRK0lrN3cjQ");
+const genAI = new GoogleGenerativeAI(process.env.GEMI_API_KEY);
 
 async function getRes() {
   try {
@@ -17,3 +17,4 @@ async function getRes() {
 }
 
 getRes();
+
