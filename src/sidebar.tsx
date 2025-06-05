@@ -1,6 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { Login } from './components/Login';
 import './sidebar.css';
+import './styles/auth.css';
 
 interface AnalysisResult {
   tables: string[];
@@ -33,12 +36,13 @@ const HelpIcon = () => (
   </svg>
 );
 
-const Sidebar: React.FC = () => {
+const SidebarContent = () => {
   const [question, setQuestion] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
   const mainContentRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const { currentUser, logout } = useAuth();
 
   const handleQuestionSubmit = async () => {
     if (!question.trim() || loading) return;
@@ -92,13 +96,21 @@ const Sidebar: React.FC = () => {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error('Failed to log out:', error);
+    }
+  };
+
   return (
     <div className="sidebar-container">
       <div className="header">
         <button className="header-icon" title="Help">
           <HelpIcon />
         </button>
-        <button className="header-icon" title="Settings">
+        <button className="header-icon" title="Settings" onClick={handleLogout}>
           <SettingsIcon />
         </button>
       </div>
@@ -169,5 +181,19 @@ const Sidebar: React.FC = () => {
   );
 };
 
+const App = () => {
+  const { currentUser } = useAuth();
+
+  return currentUser ? (
+    <SidebarContent />
+  ) : (
+    <Login onSuccess={() => {}} />
+  );
+};
+
 const root = ReactDOM.createRoot(document.getElementById('root')!);
-root.render(<Sidebar />); 
+root.render(
+  <AuthProvider>
+    <App />
+  </AuthProvider>
+); 
