@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { Login } from './components/Login';
 import './sidebar.css';
 import './styles/auth.css';
+import { Card } from './components/Card';
 
 interface AnalysisResult {
   tables: string[];
@@ -35,6 +36,37 @@ const HelpIcon = () => (
     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/>
   </svg>
 );
+
+const TableIcon = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+    <path d="M3 3h18v2H3V3zm0 4h18v14H3V7zm2 2v2h14V9H5zm0 4v6h14v-6H5z" />
+  </svg>
+);
+
+const DatabaseIcon = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+    <path d="M12 3C7.03 3 3 4.79 3 7v10c0 2.21 4.03 4 9 4s9-1.79 9-4V7c0-2.21-4.03-4-9-4zm0 2c4.42 0 7 1.36 7 2s-2.58 2-7 2-7-1.36-7-2 2.58-2 7-2zm0 14c-4.42 0-7-1.36-7-2v-2.11c1.66.96 4.28 1.45 7 1.45s5.34-.49 7-1.45V17c0 .64-2.58 2-7 2zm0-4c-4.42 0-7-1.36-7-2v-2.11c1.66.96 4.28 1.45 7 1.45s5.34-.49 7-1.45V13c0 .64-2.58 2-7 2z" />
+  </svg>
+);
+
+const UpdatedSqlCard = ({ query }: { query: string }) => {
+  const [tab, setTab] = useState<'english' | 'sql'>('english');
+  return (
+    <Card icon={<DatabaseIcon />} title="Updated SQL Query" cost="€0 3.5s">
+      <div className="tab-strip">
+        <div className={`tab ${tab === 'english' ? 'active' : ''}`} onClick={() => setTab('english')}>English</div>
+        <div className={`tab ${tab === 'sql' ? 'active' : ''}`} onClick={() => setTab('sql')}>SQL</div>
+      </div>
+      {tab === 'english' ? (
+        <div style={{background:'#f8f9ff',padding:'12px',borderRadius:'8px',fontSize:'14px',color:'#333'}}>
+          I am fetching the product names from the product table and ordering them by price to get the most expensive item.
+        </div>
+      ) : (
+        <pre className="sql-query" style={{marginTop:'8px'}}>{query}</pre>
+      )}
+    </Card>
+  );
+};
 
 const SidebarContent = () => {
   const [question, setQuestion] = useState('');
@@ -122,31 +154,21 @@ const SidebarContent = () => {
               <div className="message-time">
                 {message.timestamp.toLocaleTimeString()}
               </div>
-              <div>{message.text}</div>
+              <div className="user-bubble">{message.text}</div>
               {message.result && (
-                <div className="analysis-section">
-                  <div className="analyzed-tables">
-                    <h3>Analyzed tables</h3>
+                <>
+                  {/* Analyzed tables card */}
+                  <Card icon={<TableIcon />} title="Analysed tables" cost="€0 3.5s">
                     <div className="tables-list">
-                      {message.result.tables.map((table, index) => (
-                        <div key={index} className="table-item">
-                          {table}
-                        </div>
+                      {message.result.tables.map((table, idx) => (
+                        <div key={idx} className="table-item">{table}</div>
                       ))}
                     </div>
-                  </div>
+                  </Card>
 
-                  <div className="query-section">
-                    <h3>Updated SQL Query</h3>
-                    <div className="query-display">
-                      <div className="language-indicator">
-                        <span>English</span>
-                        <span>SQL</span>
-                      </div>
-                      <pre className="sql-query">{message.result.query}</pre>
-                    </div>
-                  </div>
-                </div>
+                  {/* Updated SQL card with tabs */}
+                  <UpdatedSqlCard query={message.result.query} />
+                </>
               )}
             </div>
           ))}
@@ -191,9 +213,12 @@ const App = () => {
   );
 };
 
-const root = ReactDOM.createRoot(document.getElementById('root')!);
-root.render(
-  <AuthProvider>
-    <App />
-  </AuthProvider>
-); 
+const rootElement = document.getElementById('root');
+if (rootElement && !rootElement.hasChildNodes()) {
+  const root = ReactDOM.createRoot(rootElement);
+  root.render(
+    <AuthProvider>
+      <App />
+    </AuthProvider>
+  );
+} 

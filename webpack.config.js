@@ -6,6 +6,7 @@ module.exports = {
   mode: 'development',
   devtool: 'cheap-module-source-map',
   entry: {
+    popup: './src/popup.tsx',
     sidebar: './src/sidebar.tsx',
     background: './src/background.ts',
     content: './src/content.ts'
@@ -14,6 +15,26 @@ module.exports = {
     path: path.resolve(__dirname, 'dist'),
     filename: '[name].js',
     clean: true
+  },
+  optimization: {
+    splitChunks: {
+      chunks: 'all',
+      name: 'vendor',
+      cacheGroups: {
+        defaultVendors: {
+          test: /[\\/]node_modules[\\/]/,
+          priority: -10,
+          reuseExistingChunk: true,
+          name: 'vendor'
+        },
+        default: {
+          minChunks: 2,
+          priority: -20,
+          reuseExistingChunk: true
+        }
+      }
+    },
+    runtimeChunk: 'single'
   },
   module: {
     rules: [
@@ -33,9 +54,16 @@ module.exports = {
   },
   plugins: [
     new HtmlWebpackPlugin({
+      template: './src/popup.html',
+      filename: 'popup.html',
+      chunks: ['popup', 'vendor', 'runtime'],
+      inject: 'body'
+    }),
+    new HtmlWebpackPlugin({
       template: './src/sidebar.html',
       filename: 'sidebar.html',
-      chunks: ['sidebar']
+      chunks: ['sidebar', 'vendor', 'runtime'],
+      inject: 'body'
     }),
     new CopyPlugin({
       patterns: [

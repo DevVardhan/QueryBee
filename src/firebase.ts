@@ -4,12 +4,12 @@ import { getAuth } from 'firebase/auth';
 // Your Firebase configuration
 // Replace these with your actual Firebase config values
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "your-app.firebaseapp.com",
-  projectId: "your-project-id",
-  storageBucket: "your-app.appspot.com",
-  messagingSenderId: "your-messaging-sender-id",
-  appId: "your-app-id"
+  apiKey: "AIzaSyC6DDwW7_2YxJNWsZE_dnJQVKqThXKuNJM",
+  authDomain: "querybee-fd136.firebaseapp.com",
+  projectId: "querybee-fd136",
+  storageBucket: "querybee-fd136.firebasestorage.app",
+  messagingSenderId: "933748632172",
+  appId: "1:933748632172:web:03aa8fd5b8cb222bc60649"
 };
 
 // Initialize Firebase
