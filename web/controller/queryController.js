@@ -1,7 +1,4 @@
 import * as dotenv from "dotenv";
-import { GoogleGenerativeAI } from "@google/generative-ai";
-import features from "../utils/util.js";
-import pool from "../utils/pool.js";
 import modelController from "./modelController.js";
 
 dotenv.config();
