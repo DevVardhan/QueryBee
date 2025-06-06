@@ -15,8 +15,12 @@ This is a Node.js + Express server that converts natural language queries into e
 
 ## 🛠️ Setup
 
-1. **Clone the repo**
+1. **Select the dir**
    ```bash
-   git clone https://github.com/your-username/nl-to-sql-api.git
-   cd nl-to-sql-api
+   cd web
+   ```
+2. **Install dependencies and run**
+   ```bash
+   npm i -y
+   npm run dev
    ```
