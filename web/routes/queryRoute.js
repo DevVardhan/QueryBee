@@ -1,6 +1,5 @@
 import express from "express";
 import queryController from "../controller/queryController.js"; 
-import { isEqualsGreaterThanToken } from "typescript";
 
 const router = express.Router(); 
 
@@ -16,5 +15,7 @@ router.get('/query', queryController.preProcess, queryController.openQuery);
 router.get('/analize' , queryController.preProcess , (req, res) => {
     res.status(200).json({ message: `${req.complexity}` });
 }   );
+
+router.get('/schema' ,queryController.fetchSchema );
 
 export default router;

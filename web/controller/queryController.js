@@ -1,7 +1,10 @@
 import * as dotenv from "dotenv";
+import features from "../utils/util.js";
 import modelController from "./modelController.js";
 
 dotenv.config();
+
+const databaseSchema = await features.getDatabaseSchema();
 
 // Controller to classify complexity 
 const preProcess = async (req, res, next) => {
@@ -10,7 +13,7 @@ const preProcess = async (req, res, next) => {
   if (!userQuery) {
     return res.status(400).json({ error: 'Missing query parameter "userQuery"' });
   }
-  
+
   try {
 
     const text = await modelController.generateComplexityWithGemini(userQuery);
@@ -40,34 +43,41 @@ const openQuery = async (req, res) => {
 
   try {
     let sql;
-
+    console.log(complexity);
     switch (complexity) {
       case "easy":
-        sql = await modelController.generateSQLWithGemini(userQuery);
+        sql = await modelController.generateSQLWithGemini(userQuery , databaseSchema);
         break;
-      case "mid":
-        sql = await modelController.generateSQLWithOpenAI(userQuery);
-        break;
-      case "hard":
-        sql = await modelController.generateSQLWithClaude(userQuery);
-        break;
+        case "mid":
+          sql = await modelController.generateSQLWithOpenAI(userQuery , databaseSchema);
+          break;
+          case "hard":
+            sql = await modelController.generateSQLWithClaude(userQuery , databaseSchema);
+            break;
       default:
-        sql = await modelController.generateSQLWithGemini(userQuery);
+        sql = await modelController.generateSQLWithGemini(userQuery , databaseSchema);
     }
-
-    return res.status(200).json({ sql });
-
+    let result ;
+     result = await features.executeGeneratedQuery(sql); // undefined
+    res.status(200).json({result});
   } catch (error) {
     console.error("Error generating SQL:", error.response?.data || error.message);
-    return res.status(500).json({ error: "Failed to generate SQL" });
+    return res.status(500).json({ error: `error : query not valid or Failed to generate SQL` });
   }
 };
 
+const fetchSchema = async(req , res) =>{
+  const dbSchema = await features.getDatabaseSchema();
+  res.status(200).json({
+    dbSchema , 
+  })
+}
 
 // Main export
 const queryController = {
   openQuery,
   preProcess,
+  fetchSchema , 
 };
 
 export default queryController;
