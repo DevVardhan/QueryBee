@@ -1,8 +1,37 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import axios from "axios";
-import  features  from "../utils/util.js";
 
-const generateSQLWithOpenAI = async (userQuery , databaseSchema) => {
+// creating unique prompts
+const generatePrompt = (userQuery , databaseSchema) =>{
+  const prompt = `You are an expert data analyst and SQL developer.
+  
+  Your task is to convert natural language questions into syntactically correct SQL queries.
+
+  ### SCHEMA INFORMATION:${JSON.stringify(databaseSchema)}
+
+  ### INSTRUCTIONS:
+  - Only use the tables and columns provided in the schema above.
+  - If a table or column name mentioned in the user question is not present in the schema, find the *closest possible match in the schema* (e.g., if 
+    user says "orders" but table is "order", use "order").
+  - Always choose the table names present it schema if the table is not present , choose the closest table in schema.
+  - Do not create or hallucinate any tables or columns not present in the schema.
+  - Always write valid SQL
+  - Prefer JOINs over subqueries where applicable.
+  - Use table aliases to keep the query concise.
+  - If the user asks for time-based filtering like "last 7 days", assume CURRENT_DATE is available.
+  - If you’re unsure about a mapping, make the best reasonable guess based on names.
+  - Do not explain anything. Just return the SQL query.
+  - Do NOT wrap the SQL in quotes. Do NOT quote column or table names (no "table" or "column" with quotes).
+  - Only return the raw SQL. Do not add markdown, explanation, or code block syntax.  
+  - before any tabel name add "ecommerce_core."
+
+  ### USER QUESTION:${userQuery}
+
+  ### SQL QUERY: `
+  return prompt ; 
+}
+
+const generateSQLWithOpenAI = async (prompt) => {
   const openaiResponse = await axios.post(
     "https://api.openai.com/v1/chat/completions",
     {
@@ -10,37 +39,8 @@ const generateSQLWithOpenAI = async (userQuery , databaseSchema) => {
       messages: [
         {
           role: "system",
-          content: `You are an assistant that converts natural language into SQL queries. Assume a PostgreSQL database. Only return the SQL query.
-          ⚠️ Do NOT wrap the SQL in quotes. Do NOT quote column or table names (no "table" or "column" with quotes).
-
-          Only return the raw SQL. Do not add markdown, explanation, or code block syntax.
-
-          before any tabel name add "ecommerce_core."
-          
-          strictly follow the table naming schema and use only among the table names in the schema.
-          
-          Request:
-          "${userQuery}"
-
-          Database Schema:
-          ${databaseSchema}`
-        },
-        {
-          role: "user",
-          content: `You are an expert SQL assistant. Convert the following natural language request into a **PostgreSQL SQL query** using the provided schema.
-         ⚠️ Do NOT wrap the SQL in quotes. Do NOT quote column or table names (no "table" or "column" with quotes).
-
-          Only return the raw SQL. Do not add markdown, explanation, or code block syntax.
-
-          before any tabel name add "ecommerce_core."
-          
-          strictly follow the table naming schema and use only among the table names in the schema.
-
-          Request:
-          "${userQuery}"
-
-          Database Schema:
-         ${databaseSchema}`
+          content: prompt ,
+  
         }
       ],
       temperature: 0,
@@ -53,35 +53,21 @@ const generateSQLWithOpenAI = async (userQuery , databaseSchema) => {
       timeout: 10000 // 10 seconds
     }
   );
-
+  
   const sql = openaiResponse.data.choices[0].message.content.trim();
   console.log("Generated SQL:", sql);
-
+  
   // Basic safety check to block destructive operations
   const forbidden = /drop|alter|delete|truncate|update/i;
   if (forbidden.test(sql)) {
     throw new Error("Generated SQL contains unsafe commands.");
   }
-
+  
   return sql;
 };
 
 
-const generateSQLWithGemini = async (userQuery ,databaseSchema) => {
-  const prompt = `You are an expert SQL assistant. Convert the following natural language request into a **PostgreSQL SQL query** using the provided schema.
-
-⚠️ Do NOT wrap the SQL in quotes. Do NOT quote column or table names (no "table" or "column" with quotes).
-
-Only return the raw SQL. Do not add markdown, explanation, or code block syntax.
-
-before any tabel name add "ecommerce_core." 
-
-Request:
-"${userQuery}"
-
-Database Schema:
-${databaseSchema}`;
-
+const generateSQLWithGemini = async (prompt) => {
   const genAI = new GoogleGenerativeAI(process.env.GEMI_API_KEY);
   const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
@@ -91,7 +77,7 @@ ${databaseSchema}`;
   return sql; 
 };
 
-const generateSQLWithClaude = async (userQuery , databaseSchema) => {
+const generateSQLWithClaude = async (prompt) => {
   const response = await axios.post(
     "https://api.anthropic.com/v1/messages",
     {
@@ -101,19 +87,7 @@ const generateSQLWithClaude = async (userQuery , databaseSchema) => {
       messages: [
         {
           role: "user",
-          content: `You are an expert SQL assistant. Convert the following natural language request into a **PostgreSQL SQL query** using the provided schema.
-
-          ⚠️ Do NOT wrap the SQL in quotes. Do NOT quote column or table names (no "table" or "column" with quotes).
-
-          Only return the raw SQL. Do not add markdown, explanation, or code block syntax.
-
-          before any tabel name add "ecommerce_core." 
-
-          Request:
-          "${userQuery}"
-
-          Database Schema:
-          ${databaseSchema}`
+          content: prompt , 
         }
       ]
     },
@@ -160,6 +134,7 @@ const modelController = {
     generateSQLWithClaude , 
     generateSQLWithGemini , 
     generateComplexityWithGemini ,
+    generatePrompt , 
 }
 
 export default modelController ;

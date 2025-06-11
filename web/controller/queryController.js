@@ -43,22 +43,23 @@ const openQuery = async (req, res) => {
 
   try {
     let sql;
+    const prompt = modelController.generatePrompt(userQuery ,databaseSchema);
     console.log(complexity);
     switch (complexity) {
       case "easy":
-        sql = await modelController.generateSQLWithGemini(userQuery , databaseSchema);
+        sql = await modelController.generateSQLWithGemini(prompt);
         break;
-        case "mid":
-          sql = await modelController.generateSQLWithOpenAI(userQuery , databaseSchema);
-          break;
-          case "hard":
-            sql = await modelController.generateSQLWithClaude(userQuery , databaseSchema);
-            break;
+      case "mid":
+        sql = await modelController.generateSQLWithOpenAI(prompt);
+        break;
+      case "hard":
+        sql = await modelController.generateSQLWithClaude(prompt);
+        break;
       default:
-        sql = await modelController.generateSQLWithGemini(userQuery , databaseSchema);
+        sql = await modelController.generateSQLWithGemini(prompt);
     }
     let result ;
-     result = await features.executeGeneratedQuery(sql); // undefined
+     result = await features.executeGeneratedQuery(sql); 
     res.status(200).json({result});
   } catch (error) {
     console.error("Error generating SQL:", error.response?.data || error.message);

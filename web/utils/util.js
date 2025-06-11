@@ -47,8 +47,6 @@ const executeGeneratedQuery = async(sql)=>{
         client.release();
     } 
 }
-
-
 const features = {
     getDatabaseSchema ,
     executeGeneratedQuery ,
