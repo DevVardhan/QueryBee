@@ -3,7 +3,7 @@
 .sidebar-container {
   width: 100%;
   height: 100vh;
-  background-color: #ffffff;
+  background-color: #f8fafc;
   display: flex;
   flex-direction: column;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -11,23 +11,117 @@
 
 .header {
   padding: 12px 16px;
-  border-bottom: 1px solid #e0e0e0;
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
   gap: 12px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .header-icon {
-  width: 24px;
-  height: 24px;
   cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
-  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  transition: color 0.2s, background-color 0.2s;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  width: 32px;
+  height: 32px;
+  background: none;
 }
 
 .header-icon:hover {
+  color: #0f172a;
   background-color: #f0f0f0;
+}
+
+.header-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.header-auth {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-email {
+  font-size: 12px;
+  color: #64748b;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.login-btn, .logout-btn {
+  background: #4f46e5;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.login-btn:hover, .logout-btn:hover {
+  background: #4338ca;
+}
+
+.logout-btn {
+  background: #ef4444;
+}
+
+.logout-btn:hover {
+  background: #dc2626;
+}
+
+.welcome-message {
+  text-align: center;
+  padding: 40px 20px;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+.welcome-message h3 {
+  margin: 0 0 12px 0;
+  color: #1f2937;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.welcome-message p {
+  margin: 0 0 24px 0;
+  color: #6b7280;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.welcome-login-btn {
+  background: #4f46e5;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.welcome-login-btn:hover {
+  background: #4338ca;
 }
 
 .main-content {
@@ -70,26 +164,44 @@
 
 .send-button {
   position: absolute;
-  right: 8px;
-  background: none;
+  right: 12px;
+  background: #4f46e5;
   border: none;
   cursor: pointer;
-  padding: 8px;
-  color: #1a73e8;
+  padding: 0;
+  color: white;
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   transition: background-color 0.2s;
 }
 
 .send-button:hover {
-  background-color: #f0f0f0;
+  background-color: #4338ca;
 }
 
 .send-button svg {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
+  transform: translateX(1px);
+}
+
+.loading-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background-color: #ffffff;
+}
+
+.loading-text {
+  font-size: 14px;
+  color: #4f46e5;
 }
 
 .loading {
@@ -178,14 +290,14 @@
 
 .message-time {
   font-size: 12px;
-  color: #666;
+  color: #64748b;
 }
 
 /* Card component styles */
 .card {
   border: 1px solid #e5e7eb;
   border-radius: 12px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03), 0 1px 2px rgba(0, 0, 0, 0.06);
   padding: 16px;
   display: flex;
   flex-direction: column;
@@ -281,11 +393,260 @@
 }
 
 .user-bubble {
-  max-width: 70%;
+  max-width: fit-content;
   background: #ffffff;
   color: #0f172a;
   padding: 10px 14px;
-  border-radius: 12px 12px 12px 0;
+  border-radius: 12px;
   font-size: 14px;
   border: 1px solid #e5e7eb;
+  align-self: flex-end;
+}
+
+/* Popup styles */
+.text-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.text-popup-content {
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.text-popup-header {
+  padding: 16px;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.text-popup-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.text-popup-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #64748b;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+}
+
+.text-popup-body {
+  padding: 16px;
+  overflow-y: auto;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.text-popup-body.english {
+  color: #334155;
+}
+
+.text-popup-body.sql {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  background-color: #f8fafc;
+  padding: 16px;
+  border-radius: 8px;
+  white-space: pre-wrap;
+}
+
+/* SQL Feedback Popup specific styles */
+.sql-feedback-body {
+  padding: 16px;
+}
+
+.sql-feedback-option {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+}
+
+.sql-feedback-option:hover {
+  background-color: #f1f5f9;
+}
+
+.sql-feedback-checkbox {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #cbd5e1;
+  border-radius: 4px;
+  display: inline-block;
+  position: relative;
+}
+
+.sql-feedback-checkbox::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 10px;
+  height: 10px;
+  background-color: #3b82f6;
+  border-radius: 2px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.sql-feedback-option input:checked + .sql-feedback-checkbox::after {
+  opacity: 1;
+}
+
+.text-popup-icon-btn {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  margin-left: 4px;
+  color: #64748b;
+  padding: 2px 4px;
+  transition: background 0.2s;
+}
+.text-popup-icon-btn:hover {
+  background: #f1f5f9;
+}
+
+/* New Feedback Popup Styles */
+.feedback-popup-content {
+  background-color: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  width: 90%;
+  max-width: 360px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.feedback-popup-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.feedback-icon-bg {
+  background-color: #eef2ff;
+  border-radius: 8px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.feedback-popup-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #4f46e5;
+}
+
+.feedback-popup-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.feedback-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: #374151;
+  cursor: pointer;
+}
+
+.feedback-option input {
+  display: none;
+}
+
+.feedback-checkbox {
+  width: 20px;
+  height: 20px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.feedback-checkbox::after {
+  content: "✔";
+  color: white;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.feedback-option input:checked + .feedback-checkbox {
+  background-color: #4f46e5;
+  border-color: #4f46e5;
+}
+
+.feedback-option input:checked + .feedback-checkbox::after {
+  opacity: 1;
+}
+
+.feedback-input-wrapper {
+  position: relative;
+  margin-top: 8px;
+}
+
+.feedback-input-wrapper textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 12px;
+  padding-right: 48px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  resize: vertical;
+}
+
+.feedback-send-button {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #4f46e5;
+  color: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.feedback-send-button svg {
+  width: 18px;
+  height: 18px;
 } 

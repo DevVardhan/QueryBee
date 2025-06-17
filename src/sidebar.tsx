@@ -1,15 +1,46 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { Login } from './components/Login';
+import { LoginPopup } from './components/LoginPopup';
 import './sidebar.css';
 import './styles/auth.css';
 import { Card } from './components/Card';
+import { TextPopup } from './components/TextPopup';
+import { SqlFeedbackPopup } from './components/SqlFeedbackPopup';
+import { ErrorCard } from './components/ErrorCard';
+import { saveFeedback } from './firebase';
+import { LoadingIndicator } from './components/LoadingIndicator';
+// @ts-ignore
+import Prism from 'prismjs';
+import 'prismjs/components/prism-sql';
+// @ts-ignore
+import 'prismjs/themes/prism.css';
+
+const SearchIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M11.5 11.5L14.5 14.5" stroke="#6366f1" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    <circle cx="7" cy="7" r="5.25" stroke="#6366f1" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
+const ThumbsUpIcon = () => (
+  <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#22c55e" strokeWidth="1.5">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.085a2 2 0 00-1.736.97l-2.714 4.264M7 20h2.886a2 2 0 001.914-1.415l2.257-6.772a2 2 0 00-1.914-2.585H5.5" />
+  </svg>
+);
+
+const ThumbsDownIcon = () => (
+  <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#ef4444" strokeWidth="1.5">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.736 3h4.017c.163 0 .326.02.485.06L17 4m-7 10v5a2 2 0 002 2h.085a2 2 0 001.736-.97l2.714-4.264M17 4h-2.886a2 2 0 00-1.914 1.415l-2.257 6.772a2 2 0 001.914 2.585H18.5" />
+  </svg>
+);
 
 interface AnalysisResult {
-  tables: string[];
-  query: string;
+  tables?: string[];
+  query?: string;
   loading: boolean;
+  error?: boolean;
+  message?: string;
 }
 
 interface Message {
@@ -19,21 +50,46 @@ interface Message {
   result?: AnalysisResult;
 }
 
+interface UpdatedSqlCardProps {
+  query: string;
+  onRegenerate: (reasons: string[]) => void;
+}
+
 const SendIcon = () => (
   <svg viewBox="0 0 24 24" fill="currentColor">
     <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
   </svg>
 );
 
-const SettingsIcon = () => (
-  <svg viewBox="0 0 24 24" fill="currentColor">
-    <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.63-.07.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+const MenuIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M3.75 6.75h16.5" />
+    <path d="M3.75 12h16.5" />
+    <path d="M3.75 17.25h16.5" />
   </svg>
 );
 
-const HelpIcon = () => (
-  <svg viewBox="0 0 24 24" fill="currentColor">
-    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/>
+const NewChatIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M4 5.75A2.75 2.75 0 0 1 6.75 3h10.5A2.75 2.75 0 0 1 20 5.75v7.5A2.75 2.75 0 0 1 17.25 16H8.5L4 19.25V5.75z" />
+    <path d="M12 8.5v4" />
+    <path d="M14 10.5h-4" />
   </svg>
 );
 
@@ -49,22 +105,87 @@ const DatabaseIcon = () => (
   </svg>
 );
 
-const UpdatedSqlCard = ({ query }: { query: string }) => {
+const UpdatedSqlCard: React.FC<UpdatedSqlCardProps> = ({ query, onRegenerate }) => {
   const [tab, setTab] = useState<'english' | 'sql'>('english');
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+  const { currentUser } = useAuth();
+  const codeRef = useRef<HTMLPreElement>(null);
+
+  const englishText = "I am fetching the product names from the product table and ordering them by price to get the most expensive item.";
+
+  const handleThumbsUp = () => {
+    saveFeedback({
+      userId: currentUser?.uid ?? null,
+      relatedQuery: query,
+      isCorrect: true,
+    });
+  };
+
+  const handleFeedbackSubmit = (reasons: string[]) => {
+    saveFeedback({
+      userId: currentUser?.uid ?? null,
+      relatedQuery: query,
+      isCorrect: false,
+      reasons,
+    });
+    onRegenerate(reasons);
+  };
+
+  useEffect(() => {
+    if (codeRef.current) {
+      Prism.highlightElement(codeRef.current);
+    }
+  }, [query, tab]);
+
   return (
-    <Card icon={<DatabaseIcon />} title="Updated SQL Query" cost="€0 3.5s">
-      <div className="tab-strip">
-        <div className={`tab ${tab === 'english' ? 'active' : ''}`} onClick={() => setTab('english')}>English</div>
-        <div className={`tab ${tab === 'sql' ? 'active' : ''}`} onClick={() => setTab('sql')}>SQL</div>
-      </div>
-      {tab === 'english' ? (
-        <div style={{background:'#f8f9ff',padding:'12px',borderRadius:'8px',fontSize:'14px',color:'#333'}}>
-          I am fetching the product names from the product table and ordering them by price to get the most expensive item.
+    <>
+      <Card icon={<DatabaseIcon />} title="Updated SQL Query" cost="€0 3.5s">
+        <div className="tab-strip">
+          <div className={`tab ${tab === 'english' ? 'active' : ''}`} onClick={() => setTab('english')}>English</div>
+          <div className={`tab ${tab === 'sql' ? 'active' : ''}`} onClick={() => setTab('sql')}>SQL</div>
         </div>
-      ) : (
-        <pre className="sql-query" style={{marginTop:'8px'}}>{query}</pre>
-      )}
-    </Card>
+        <div style={{ position: 'relative' }}>
+          {tab === 'english' ? (
+            <div style={{position: 'relative'}}>
+              <div style={{background:'#f8f9ff',padding:'12px',borderRadius:'8px',fontSize:'14px',color:'#333'}}>
+                {englishText}
+              </div>
+              <button 
+                style={{ position: 'absolute', right: 8, top: 8, background: 'none', border: 'none', cursor: 'pointer' }}
+                onClick={() => setIsPopupOpen(true)}
+                title="View in popup"
+              >
+                <SearchIcon />
+              </button>
+            </div>
+          ) : (
+            <pre ref={codeRef} className="language-sql" style={{marginTop:'8px'}}>{query}</pre>
+          )}
+        </div>
+        {/* Feedback section */}
+        <div style={{marginTop: 12, display: 'flex', alignItems: 'center', gap: 8}}>
+          <span style={{color: '#64748b', fontSize: 14}}>Is this SQL correct?</span>
+          <button onClick={handleThumbsUp} style={{background: 'none', border: 'none', cursor: 'pointer', padding: 2}} title="Thumbs up">
+            <ThumbsUpIcon />
+          </button>
+          <button onClick={() => setIsFeedbackOpen(true)} style={{background: 'none', border: 'none', cursor: 'pointer', padding: 2}} title="Thumbs down">
+            <ThumbsDownIcon />
+          </button>
+        </div>
+      </Card>
+      <TextPopup
+        isOpen={isPopupOpen}
+        onClose={() => setIsPopupOpen(false)}
+        text={tab === 'english' ? englishText : query}
+        language={tab}
+      />
+      <SqlFeedbackPopup
+        isOpen={isFeedbackOpen}
+        onClose={() => setIsFeedbackOpen(false)}
+        onSubmit={handleFeedbackSubmit}
+      />
+    </>
   );
 };
 
@@ -72,11 +193,18 @@ const SidebarContent = () => {
   const [question, setQuestion] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isLoginPopupOpen, setIsLoginPopupOpen] = useState(false);
   const mainContentRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { currentUser, logout } = useAuth();
 
   const handleQuestionSubmit = async () => {
+    // Check if user is authenticated before allowing questions
+    if (!currentUser) {
+      setIsLoginPopupOpen(true);
+      return;
+    }
+
     if (!question.trim() || loading) return;
 
     const newMessage: Message = {
@@ -88,6 +216,21 @@ const SidebarContent = () => {
     setMessages(prev => [...prev, newMessage]);
     setQuestion('');
     setLoading(true);
+
+    // Check if the question contains "error"
+    if (question.toLowerCase().includes('error')) {
+      setTimeout(() => {
+        setMessages(prev => 
+          prev.map(msg => 
+            msg.id === newMessage.id 
+              ? { ...msg, result: { error: true, message: 'Failed to fetch query results', loading: false } }
+              : msg
+          )
+        );
+        setLoading(false);
+      }, 1000);
+      return;
+    }
 
     // Simulate API call
     setTimeout(() => {
@@ -105,7 +248,7 @@ const SidebarContent = () => {
         )
       );
       setLoading(false);
-    }, 1000);
+    }, 4000);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -131,48 +274,107 @@ const SidebarContent = () => {
   const handleLogout = async () => {
     try {
       await logout();
+      setMessages([]); // Clear chat history on logout
     } catch (error) {
       console.error('Failed to log out:', error);
     }
   };
 
+  const handleRegenerate = (reasons: string[]) => {
+    if (!currentUser) {
+      setIsLoginPopupOpen(true);
+      return;
+    }
+
+    const newId = Date.now().toString();
+    const placeholder: Message = {
+      id: newId,
+      text: '(regenerated)',
+      timestamp: new Date(),
+      result: { loading: true }
+    };
+
+    // Append placeholder message
+    setMessages(prev => [...prev, placeholder]);
+
+    // Simulate API call influenced by reasons
+    setTimeout(() => {
+      const newResult: AnalysisResult = {
+        tables: ['Products'],
+        query: `-- regenerated due to: ${reasons.join(', ')}\nSELECT * FROM Products ORDER BY price DESC LIMIT 1`,
+        loading: false,
+      };
+
+      setMessages(prev => prev.map(msg =>
+        msg.id === newId ? { ...msg, result: newResult } : msg
+      ));
+    }, 4000);
+  };
+
   return (
     <div className="sidebar-container">
       <div className="header">
-        <button className="header-icon" title="Help">
-          <HelpIcon />
+        <button className="header-icon" title="Menu">
+          <MenuIcon />
         </button>
-        <button className="header-icon" title="Settings" onClick={handleLogout}>
-          <SettingsIcon />
+        <button className="header-icon" title="New chat" onClick={() => setMessages([])}>
+          <NewChatIcon />
         </button>
+        <div className="header-auth">
+          {currentUser ? (
+            <div className="user-info">
+              <span className="user-email">{currentUser.email}</span>
+              <button onClick={handleLogout} className="logout-btn">Logout</button>
+            </div>
+          ) : (
+            <button onClick={() => setIsLoginPopupOpen(true)} className="login-btn">
+              Login
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="main-content" ref={mainContentRef}>
+        {!currentUser && messages.length === 0 && (
+          <div className="welcome-message">
+            <h3>Welcome to QueryBee</h3>
+            <p>Please log in to start chatting and generating SQL queries.</p>
+            <button onClick={() => setIsLoginPopupOpen(true)} className="welcome-login-btn">
+              Get Started - Login
+            </button>
+          </div>
+        )}
+        
         <div className="conversation">
           {messages.map((message) => (
             <div key={message.id} className="message">
-              <div className="message-time">
-                {message.timestamp.toLocaleTimeString()}
-              </div>
               <div className="user-bubble">{message.text}</div>
               {message.result && (
                 <>
-                  {/* Analyzed tables card */}
-                  <Card icon={<TableIcon />} title="Analysed tables" cost="€0 3.5s">
-                    <div className="tables-list">
-                      {message.result.tables.map((table, idx) => (
-                        <div key={idx} className="table-item">{table}</div>
-                      ))}
-                    </div>
-                  </Card>
+                  {message.result.loading ? (
+                    <LoadingIndicator />
+                  ) : message.result.error ? (
+                    <ErrorCard message={message.result.message || 'An error occurred'} />
+                  ) : (
+                    <>
+                      {/* Analyzed tables card */}
+                      <Card icon={<TableIcon />} title="Analysed tables" cost="€0 3.5s">
+                        <div className="tables-list">
+                          {message.result.tables?.map((table, idx) => (
+                            <div key={idx} className="table-item">{table}</div>
+                          ))}
+                        </div>
+                      </Card>
 
-                  {/* Updated SQL card with tabs */}
-                  <UpdatedSqlCard query={message.result.query} />
+                      {/* Updated SQL card with tabs */}
+                      <UpdatedSqlCard query={message.result.query || ''} onRegenerate={handleRegenerate} />
+                    </>
+                  )}
                 </>
               )}
             </div>
           ))}
-          {loading && <div className="loading">Analyzing...</div>}
+          {loading && <LoadingIndicator />}
         </div>
       </div>
 
@@ -186,7 +388,7 @@ const SidebarContent = () => {
               adjustTextareaHeight();
             }}
             onKeyDown={handleKeyPress}
-            placeholder="What would you like to know?"
+            placeholder={currentUser ? "What would you like to know?" : "Login to start asking questions..."}
             className="question-input"
             rows={1}
           />
@@ -194,31 +396,34 @@ const SidebarContent = () => {
             className="send-button" 
             onClick={handleQuestionSubmit}
             disabled={!question.trim() || loading}
+            title={!currentUser ? "Login required" : "Send message"}
           >
             <SendIcon />
           </button>
         </div>
       </div>
+
+      <LoginPopup 
+        isOpen={isLoginPopupOpen} 
+        onClose={() => setIsLoginPopupOpen(false)} 
+      />
     </div>
   );
 };
 
 const App = () => {
-  const { currentUser } = useAuth();
-
-  return currentUser ? (
-    <SidebarContent />
-  ) : (
-    <Login onSuccess={() => {}} />
+  return (
+    <div className="sidebar-container">
+      <SidebarContent />
+    </div>
   );
 };
 
-const rootElement = document.getElementById('root');
-if (rootElement && !rootElement.hasChildNodes()) {
-  const root = ReactDOM.createRoot(rootElement);
-  root.render(
+const root = ReactDOM.createRoot(document.getElementById('root')!);
+root.render(
+  <React.StrictMode>
     <AuthProvider>
       <App />
     </AuthProvider>
-  );
-} 
+  </React.StrictMode>
+); 

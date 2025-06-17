@@ -6,7 +6,6 @@ module.exports = {
   mode: 'development',
   devtool: 'cheap-module-source-map',
   entry: {
-    popup: './src/popup.tsx',
     sidebar: './src/sidebar.tsx',
     background: './src/background.ts',
     content: './src/content.ts'
@@ -53,12 +52,6 @@ module.exports = {
     extensions: ['.ts', '.tsx', '.js', '.jsx']
   },
   plugins: [
-    new HtmlWebpackPlugin({
-      template: './src/popup.html',
-      filename: 'popup.html',
-      chunks: ['popup', 'vendor', 'runtime'],
-      inject: 'body'
-    }),
     new HtmlWebpackPlugin({
       template: './src/sidebar.html',
       filename: 'sidebar.html',

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>QueryBee Extension Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        .status { font-weight: bold; }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+        button { padding: 10px; margin: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>QueryBee Extension Debug Test</h1>
+    
+    <div class="section">
+        <h3>1. Basic Extension Check</h3>
+        <p id="extension-status" class="status">Checking...</p>
+        <button onclick="checkExtension()">Recheck Extension</button>
+    </div>
+    
+    <div class="section">
+        <h3>2. Chrome APIs Available</h3>
+        <p id="api-status" class="status">Checking...</p>
+    </div>
+    
+    <div class="section">
+        <h3>3. Console Logs</h3>
+        <p>Check the browser console (F12) for detailed logs from the background script.</p>
+        <p>Look for messages starting with "ServiceNode" and extension click logs.</p>
+    </div>
+    
+    <div class="section">
+        <h3>4. Manual Test</h3>
+        <p>Click the QueryBee extension icon in the browser toolbar.</p>
+        <p>The background script will log detailed information about what's happening.</p>
+    </div>
+
+    <script>
+        function checkExtension() {
+            const statusEl = document.getElementById('extension-status');
+            const apiEl = document.getElementById('api-status');
+            
+            // Check if we're in an extension context
+            if (typeof chrome !== 'undefined' && chrome.runtime) {
+                statusEl.innerHTML = '<span class="success">✅ Chrome extension context detected</span>';
+                
+                // Check APIs
+                let apiStatus = [];
+                if (chrome.sidePanel) apiStatus.push('✅ sidePanel API available');
+                else apiStatus.push('❌ sidePanel API not available');
+                
+                if (chrome.action) apiStatus.push('✅ action API available');
+                else apiStatus.push('❌ action API not available');
+                
+                if (chrome.tabs) apiStatus.push('✅ tabs API available');
+                else apiStatus.push('❌ tabs API not available');
+                
+                apiEl.innerHTML = apiStatus.join('<br>');
+                
+            } else {
+                statusEl.innerHTML = '<span class="error">❌ Not in extension context</span>';
+                apiEl.innerHTML = '<span class="info">Open this file from the extension popup or content script</span>';
+            }
+        }
+        
+        // Run check on page load
+        checkExtension();
+        
+        // Log some debug info
+        console.log('QueryBee Debug Test loaded');
+        console.log('Chrome object:', typeof chrome !== 'undefined' ? chrome : 'Not available');
+        console.log('User Agent:', navigator.userAgent);
+    </script>
+</body>
+</html> 
