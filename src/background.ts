@@ -68,23 +68,49 @@ chrome.tabs.onUpdated.addListener((tabId, info, tab) => {
 
   if (tab.url.startsWith('http://') || tab.url.startsWith('https://')) {
     console.log(`Enabling sidebar for tab ${tabId}: ${tab.url}`);
-    chrome.sidePanel.setOptions({
-      tabId,
-      path: 'sidebar.html',
-      enabled: true
-    }).catch((error) => {
-      console.error('Failed to enable sidebar:', formatError(error));
-    });
+    try {
+      chrome.sidePanel.setOptions({
+        tabId,
+        path: 'sidebar.html',
+        enabled: true
+      }).catch((error) => {
+        console.error('Failed to enable sidebar:', formatError(error));
+      });
+    } catch (error) {
+      console.error('Error enabling sidebar:', formatError(error));
+    }
   }
 });
 
 // Initialize extension on install/startup
 chrome.runtime.onInstalled.addListener(() => {
   console.log('Extension installed/updated');
+  // Set default sidebar state
+  try {
+    chrome.sidePanel.setOptions({
+      path: 'sidebar.html',
+      enabled: true
+    }).catch((error) => {
+      console.error('Failed to set default sidebar state:', formatError(error));
+    });
+  } catch (error) {
+    console.error('Error setting default sidebar state:', formatError(error));
+  }
 });
 
 chrome.runtime.onStartup.addListener(() => {
   console.log('Extension started');
+  // Set default sidebar state on startup
+  try {
+    chrome.sidePanel.setOptions({
+      path: 'sidebar.html',
+      enabled: true
+    }).catch((error) => {
+      console.error('Failed to set default sidebar state:', formatError(error));
+    });
+  } catch (error) {
+    console.error('Error setting default sidebar state:', formatError(error));
+  }
 });
 
 // Handle extension icon click - open side panel manually
@@ -99,7 +125,7 @@ chrome.action.onClicked.addListener(async (tab) => {
   try {
     console.log(`Attempting to open sidebar for tab ${tab.id} in window ${tab.windowId}`);
     
-    // Enable the side panel for this tab if not already enabled
+    // First ensure the sidebar is enabled for this tab
     await chrome.sidePanel.setOptions({
       tabId: tab.id,
       path: 'sidebar.html',
@@ -107,24 +133,26 @@ chrome.action.onClicked.addListener(async (tab) => {
     });
     console.log('Sidebar enabled successfully');
     
-    // Open the side panel
-    await chrome.sidePanel.open({windowId: tab.windowId});
-    console.log('✅ Side panel opened successfully');
-    
-  } catch (error) {
-    console.error('❌ Failed to open side panel:', formatError(error));
-    
-    // Try alternative approach - set global sidebar
+    // Then try to open it
     try {
-      console.log('Trying global sidebar approach...');
-      await chrome.sidePanel.setOptions({
-        path: 'sidebar.html',
-        enabled: true
-      });
       await chrome.sidePanel.open({windowId: tab.windowId});
-      console.log('✅ Global sidebar opened successfully');
-    } catch (fallbackError) {
-      console.error('❌ Fallback approach also failed:', formatError(fallbackError));
+      console.log('✅ Side panel opened successfully');
+    } catch (openError) {
+      console.error('Failed to open side panel:', formatError(openError));
+      
+      // If opening fails, try to set global options and open
+      try {
+        await chrome.sidePanel.setOptions({
+          path: 'sidebar.html',
+          enabled: true
+        });
+        await chrome.sidePanel.open({windowId: tab.windowId});
+        console.log('✅ Side panel opened with global settings');
+      } catch (fallbackError) {
+        console.error('❌ All attempts to open side panel failed:', formatError(fallbackError));
+      }
     }
+  } catch (error) {
+    console.error('❌ Failed to enable sidebar:', formatError(error));
   }
 });
